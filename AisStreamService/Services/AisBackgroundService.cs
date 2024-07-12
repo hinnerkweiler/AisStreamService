@@ -35,8 +35,8 @@ namespace AisStreamService.Services
                     
                     var area = Environment.GetEnvironmentVariable("Area") ?? "-90,-180,90,180";
                     var areaBoundary = area.Split(",").Select(double.Parse).ToArray();
-                    
-                    var mmsiList = Environment.GetEnvironmentVariable("BoatsMmsi") ?? "\"211382270\", \"211814480\", \"211566110\", \"211750300\"";
+
+                    var mmsiList = Environment.GetEnvironmentVariable("Boats");
                     var boundingBox = new double[][] { new double[] { areaBoundary[0], areaBoundary[1] }, new double[] { areaBoundary[2], areaBoundary[3] } };
                     
                     var subscriptionMessage = new
@@ -65,6 +65,7 @@ namespace AisStreamService.Services
                         }
 
                         var responseString = Encoding.UTF8.GetString(responseBuffer, 0, result.Count);
+                        Console.WriteLine($"Received AIS data: {responseString.ToString()}");
                         var aisStreamResponse = JsonSerializer.Deserialize<AisStreamResponse>(responseString);
 
                         if (aisStreamResponse?.MessageType == "PositionReport")
@@ -73,6 +74,14 @@ namespace AisStreamService.Services
                             await StoreAisDataAsync(aisStreamResponse);
                         }
                     }
+                }
+                catch (System.Text.Json.JsonException ex)
+                {
+                    _logger.LogError(ex, "An error occurred while deserializing the AIS data.");
+                }
+                catch (WebSocketException ex)
+                {
+                    _logger.LogError(ex, "An error occurred in the AIS WebSocket connection.");
                 }
                 catch (Exception ex)
                 {
