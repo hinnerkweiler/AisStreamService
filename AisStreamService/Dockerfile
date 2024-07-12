@@ -7,7 +7,7 @@ EXPOSE 80
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["AisStreamService/AisStreamService.csproj", "."]
-RUN dotnet restore "AisStreamService/AisStreamService.csproj"
+RUN dotnet restore "./AisStreamService.csproj"
 COPY . .
 WORKDIR "/src/AisStreamService/"
 RUN dotnet build "AisStreamService.csproj" -c Release -o /app/build
