@@ -43,7 +43,7 @@ namespace AisStreamService.Services
                     {
                         APIKey = _apiKey,
                         BoundingBoxes = new[] { boundingBox },
-                        FilterMessageTypes = new[] { "PositionReport" },
+                        FilterMessageTypes = new[] { "PositionReport", "StandardClassBPositionReport", "ShipStaticData"},
                         FiltersShipMMSI = mmsiList.Split(",")
                     };
 
@@ -68,7 +68,7 @@ namespace AisStreamService.Services
                         Console.WriteLine($"Received AIS data: {responseString.ToString()}");
                         var aisStreamResponse = JsonSerializer.Deserialize<AisStreamResponse>(responseString);
 
-                        if (aisStreamResponse?.MessageType == "PositionReport")
+                        if (aisStreamResponse?.MessageType == "StandardClassBPositionReport")
                         {
                             Console.WriteLine($"Received AIS data: {responseString}");
                             await StoreAisDataAsync(aisStreamResponse);
@@ -97,28 +97,89 @@ namespace AisStreamService.Services
         {
             using var scope = _serviceProvider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AisDbContext>();
-            var vessel = await dbContext.Vessels.FirstOrDefaultAsync(v => v.Mmsi == responseMessage.Message.PositionReport.UserID);
-
-            if (vessel == null)
+            
+            if (responseMessage.MessageType == "StandardClassBPositionReport")
             {
-                vessel = new Vessel
+                var vessel = await dbContext.Vessels.FirstOrDefaultAsync(v => v.Mmsi == responseMessage.Message.StandardClassBPositionReport.UserID);
+
+                if (vessel == null)
                 {
-                    Mmsi = responseMessage.Message.PositionReport.UserID,
-                    ShipName = responseMessage.MetaData.ShipName,
-                    Latitude = responseMessage.Message.PositionReport.Latitude,
-                    Longitude = responseMessage.Message.PositionReport.Longitude,
-                    LastUpdated = DateTime.UtcNow,
-                };
-                dbContext.Vessels.Add(vessel);
-            }
-            else
-            {
-                vessel.Latitude = responseMessage.Message.PositionReport.Latitude;
-                vessel.Longitude = responseMessage.Message.PositionReport.Longitude;
-                vessel.LastUpdated = DateTime.UtcNow;
-            }
+                    vessel = new Vessel
+                    {
+                        Mmsi = responseMessage.Message.StandardClassBPositionReport.UserID,
+                        ShipName = responseMessage.MetaData.ShipName,
+                        Latitude = responseMessage.Message.StandardClassBPositionReport.Latitude,
+                        Longitude = responseMessage.Message.StandardClassBPositionReport.Longitude,
+                        LastUpdated = DateTime.UtcNow,
+                    };
+                    dbContext.Vessels.Add(vessel);
+                }
+                else
+                {
+                    vessel.Latitude = responseMessage.Message.StandardClassBPositionReport.Latitude;
+                    vessel.Longitude = responseMessage.Message.StandardClassBPositionReport.Longitude;
+                    vessel.LastUpdated = DateTime.UtcNow;
+                }
 
-            await dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync();
+            }
+            else if (responseMessage.MessageType == "PositionReport")
+            {
+                var vessel =
+                    await dbContext.Vessels.FirstOrDefaultAsync(v =>
+                        v.Mmsi == responseMessage.Message.PositionReport.UserID);
+
+                if (vessel == null)
+                {
+                    vessel = new Vessel
+                    {
+                        Mmsi = responseMessage.Message.PositionReport.UserID,
+                        ShipName = responseMessage.MetaData.ShipName,
+                        Latitude = responseMessage.Message.PositionReport.Latitude,
+                        Longitude = responseMessage.Message.PositionReport.Longitude,
+                        LastUpdated = DateTime.UtcNow,
+                    };
+                    dbContext.Vessels.Add(vessel);
+                }
+                else
+                {
+                    vessel.Latitude = responseMessage.Message.PositionReport.Latitude;
+                    vessel.Longitude = responseMessage.Message.PositionReport.Longitude;
+                    vessel.LastUpdated = DateTime.UtcNow;
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
+            else if (responseMessage.MessageType == "ShipStaticData")
+            {
+                var vessel = await dbContext.Vessels.FirstOrDefaultAsync(v => v.Mmsi == responseMessage.Message.ShipStaticData.UserID);
+
+                if (vessel == null)
+                {
+                    vessel = new Vessel
+                    {
+                        Mmsi = responseMessage.Message.ShipStaticData.UserID,
+                        ShipName = responseMessage.Message.ShipStaticData.Name,
+                    };
+                    dbContext.Vessels.Add(vessel);
+                }
+                else
+                {
+                    if (vessel.ShipName != responseMessage.Message.ShipStaticData.Name)
+                    {
+                        _logger.LogInformation("Updating ship name for MMSI {Mmsi} from {OldName} to {NewName}.", 
+                            vessel.Mmsi, vessel.ShipName, responseMessage.Message.ShipStaticData.Name);
+                        
+                        vessel.ShipName = responseMessage.Message.ShipStaticData.Name;
+                        vessel.LastUpdated = DateTime.UtcNow;
+                    }
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
+            {
+                
+            }
         }
     }
 }

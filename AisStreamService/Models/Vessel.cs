@@ -12,6 +12,5 @@ public class Vessel
     public string? ImageUrl { get; set; }
     public string? Country { get; set; }
     public string? Type { get; set; }
-    public string Group { get; set; } = Environment.GetEnvironmentVariable("Group") ?? "ungrouped";
-
+    public string GroupId { get; set; } = Environment.GetEnvironmentVariable("Group") ?? "ungrouped";
 }
