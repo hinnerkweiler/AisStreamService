@@ -111,6 +111,8 @@ namespace AisStreamService.Services
                         Latitude = responseMessage.Message.StandardClassBPositionReport.Latitude,
                         Longitude = responseMessage.Message.StandardClassBPositionReport.Longitude,
                         LastUpdated = DateTime.UtcNow,
+                        Speed = responseMessage.Message.StandardClassBPositionReport.Sog,
+                        Course = responseMessage.Message.StandardClassBPositionReport.Cog,
                     };
                     dbContext.Vessels.Add(vessel);
                 }
@@ -138,6 +140,9 @@ namespace AisStreamService.Services
                         Latitude = responseMessage.Message.PositionReport.Latitude,
                         Longitude = responseMessage.Message.PositionReport.Longitude,
                         LastUpdated = DateTime.UtcNow,
+                        Speed = responseMessage.Message.PositionReport.Sog,
+                        Course = responseMessage.Message.PositionReport.Cog,
+
                     };
                     dbContext.Vessels.Add(vessel);
                 }
