@@ -6,7 +6,7 @@ EXPOSE 80
 # Use the .NET SDK image to build the application
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["AisMicroservice.csproj", "."]
+COPY ["AisStreamService.csproj", "."]
 RUN dotnet restore "./AisStreamService.csproj"
 COPY . .
 WORKDIR "/src/."
