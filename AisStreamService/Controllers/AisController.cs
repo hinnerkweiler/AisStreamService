@@ -44,7 +44,7 @@ namespace AisStreamService.Controllers
                             { "imageUrl", vessel.ImageUrl ?? "" },
                             { "country", vessel.Country ?? "" },
                             { "type", vessel.Type ?? "" },
-                            { "group", vessel.Group },
+                            { "group", vessel.GroupId },
                         },
                         Geometry = new Geometry
                         {
@@ -58,7 +58,7 @@ namespace AisStreamService.Controllers
             
             // Find vessel by GROUP
             if (request.Group != null) {
-                var vessels = await _dbContext.Vessels.Where(v => v.Group == request.Group).ToListAsync();
+                var vessels = await _dbContext.Vessels.Where(v => v.GroupId == request.Group).ToListAsync();
                 
                 if (vessels.Count == 0)
                     return NotFound("No vessels found in the provided group.");
@@ -77,7 +77,7 @@ namespace AisStreamService.Controllers
                             { "imageUrl", boat.ImageUrl ?? ""},
                             { "country", boat.Country ?? ""},
                             { "type", boat.Type ?? ""},
-                            { "group", boat.Group },
+                            { "group", boat.GroupId },
                         },
                         Geometry = new Geometry
                         {
@@ -106,7 +106,7 @@ namespace AisStreamService.Controllers
                                 { "imageUrl", vessel.ImageUrl ?? ""},
                                 { "country", vessel.Country ?? ""},
                                 { "type", vessel.Type ?? ""},
-                                { "group", vessel.Group },
+                                { "group", vessel.GroupId },
                             },
                             Geometry = new Geometry
                             {
