@@ -2,15 +2,20 @@
 Background MicroService that runs on AisStream.io to receive current AIS Data for a given List of boats. 
 The Data will be stored in a mysql Database for further processing. The Service provides a simple query
 mechanism to retrieve the current AIS Data for a given boat by name, a group of boats by a group identifier 
-or or a given set of MMSIs.
+or or a given set of MMSIs. The Service is designed to be used in a larger Microservice Architecture to 
+provide AIS Data to the other Services. No Visualisation is included. The Service just monitors the AIS Data 
+and updates the last known location in the Database. 
+
+This Service can not be used to track ships historic travel data. The Service is designed to provide only 
+the last known location of a monitored ship.
+
+## Releasenotes
+* 0.1  Initial Release
+* 0.2  Added More Messagetypes and Support for ClassB AIS Data
+* 0.3  Store Speed and Course in Database
 
 ## Configuration
-### TechStack
-* ASP.NET 8.0
-* MySQL
-* Docker
-* Caprover
-
+The Service is fully configured via Environment Variables. No local Storage will be used and no persistend folders are required. The following Variables are available:
 ### Environment Variables
 * `AIS_API_KEY`=Your API Key for the AisStream.io API
 * `WEB_API_KEY`=Your API Key for the Web API
@@ -23,10 +28,17 @@ or or a given set of MMSIs.
 * (Optional) `Group`= The Name of the Default Group new boats are added to. Default is *ungrouped*.
 
 ### Database
-The Database is a simple MySQL (*tested on mariaDB 10.6.5*) Database. Migrations will be applied on container Startup.
+The Database is configured for MySQL (*tested on mariaDB 10.6.5*). You need to set up an empty Database and provide the connection data as Environment Variables.
 
 ## Warning
-If neither `Area` nor `Boats` are set, the Service will receive a vast amount of data from all ships all over the world. This can significantly impact your server performance and the amount of data to be stored in the Database. Also consider bandwidth limits. If your Socket congests because data can not be processed the Server will disqualify your subscription and close the socket.
+If neither `Area` nor `Boats` are defined, the Service will receive a vast amount of data from all ships all over the world. This can be well above 500 datasets per second and 
+can significantly impact your server performance and the amount of data to be stored in the Database. You will end up with more than 100k datasets in a few seconds and 
+if your Server congests because data can not be processed quick enough aisstream will disqualify your subscription and close the socket very quick!
+
+## Contribution
+This is a private Project and I do not expect any contributions. However if you have any ideas or suggestions or special addons feel free to open an issue. I am happy to 
+discuss and improve the Service. If you want to contribute feel free to fork the Project and send me a pull request. I will review and merge if it fits the purpose of the 
+Service.
 
 # License
 MIT License
@@ -38,5 +50,9 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-# Releasenotes
-* 0.1   Initial Release
+## Achknowledgements
+This Project uses the following Libraries or Services:
+* [AisStream.io](https://aisstream.io) for the AIS Data. The Service offers an open Websocket to subscribe to realtime live AIS data from all over the world. That is so cool and opens so many possibilities. However the Service is still in beta and let us hope they stay for free ater that!
+* https://github.com/PomeloFoundation/Pomelo.EntityFrameworkCore.MySql for the EntityFramework Core MySQL Provider / Copyright (c) 2017 Pomelo Foundation (MIT License)
+* As usual there is a lot of Stackoverflow and other resources that helped me to get this up and running. Thanks to all of you for sharing knowledge and advice!
+* I use and can recommend [Caprover](https://caprover.com) for an easy deployment and management of the Services. This is a great tool to deploy and manage Docker Containers on your own Server.
