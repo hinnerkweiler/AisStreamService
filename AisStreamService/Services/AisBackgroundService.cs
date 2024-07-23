@@ -15,17 +15,31 @@ namespace AisStreamService.Services
         private readonly ILogger<AisBackgroundService> _logger;
         private readonly string _apiUrl = "wss://stream.aisstream.io/v0/stream";
         private readonly string _apiKey;
-
+        private CancellationTokenSource _cancellationTokenSource;
+        
         public AisBackgroundService(IServiceProvider serviceProvider, ILogger<AisBackgroundService> logger, IConfiguration configuration)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
             _apiKey = System.Environment.GetEnvironmentVariable("AIS_API_KEY") ?? "";
+            _cancellationTokenSource = new CancellationTokenSource();
         }
         
-        public Task RestartService()
+        public async Task RestartService()
         {
-            return StartAsync(CancellationToken.None);
+            await StopService();
+            _cancellationTokenSource = new CancellationTokenSource();
+            _logger.LogInformation("AIS Background Service restarting....");
+            await StartAsync(_cancellationTokenSource.Token);
+            _logger.LogInformation("AIS Background Service started.");
+            
+        }
+        
+        public async Task StopService()
+        {
+            _logger.LogInformation("AIS Background Service stopping.");
+            _cancellationTokenSource.Cancel();
+            await Task.Delay(1000); // Give some time for the service to stop
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

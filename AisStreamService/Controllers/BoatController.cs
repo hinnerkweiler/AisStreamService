@@ -26,6 +26,35 @@ public class BoatController : Controller
         var boats = await _dbContext.Vessels.ToListAsync(); 
         return Ok(boats);
     }
+
+    [HttpPost("addmany")]
+    public async Task<IActionResult> AddManyBoats([FromBody] List<Vessel> vessels)
+    {
+        var apiKey = Request.Headers["x-api-key"];
+        if (apiKey != Environment.GetEnvironmentVariable("WEB_API_KEY"))
+        {
+            return Unauthorized();
+        }
+        
+        if (vessels == null || vessels.Count == 0)
+        {
+            return BadRequest("No Vessel data provided");
+        }
+        
+        if (vessels.Any(v => v.Mmsi.ToString().Length != 9))
+        {
+            return BadRequest("Bad MMSI");
+        }
+
+        foreach (var vessel in vessels)
+        {
+            await AddBoatToDB(vessel);
+        }
+        _= _aisBackgroundService.RestartService();
+        
+        return Ok();
+    }
+
     
     [HttpPost("add")]
     public async Task<IActionResult> AddBoat([FromBody] Vessel vessel)
@@ -51,9 +80,15 @@ public class BoatController : Controller
         {
             return BadRequest("No MMSI provided");
         }
+
+        await AddBoatToDB(vessel);
         _= _aisBackgroundService.RestartService();
         
-        //sanitize the input
+        return Ok();
+    }
+    
+    private async Task AddBoatToDB(Vessel vessel)
+    {
         vessel.ShipName = WebUtility.HtmlEncode(vessel.ShipName);
         vessel.ShipUrl = vessel.ShipUrl != null ? WebUtility.HtmlEncode(vessel.ShipUrl) : null;
         vessel.ImageUrl = vessel.ImageUrl != null ? WebUtility.HtmlEncode(vessel.ImageUrl) : null;
@@ -62,7 +97,6 @@ public class BoatController : Controller
         
         await _dbContext.Vessels.AddAsync(vessel);
         await _dbContext.SaveChangesAsync();
-        
-        return Ok();
     }
+    
 }

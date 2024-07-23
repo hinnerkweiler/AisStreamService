@@ -1,4 +1,5 @@
 using AisStreamService.Data;
+using AisStreamService.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
