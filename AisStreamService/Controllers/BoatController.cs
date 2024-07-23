@@ -12,10 +12,12 @@ namespace AisStreamService.Controllers;
 public class BoatController : Controller
 {
     AisDbContext _dbContext;
+    private readonly AisBackgroundService _aisBackgroundService;
     
-    public BoatController(AisDbContext dbContext)
+    public BoatController(AisDbContext dbContext, AisBackgroundService aisBackgroundService)
     {
         _dbContext = dbContext;
+        _aisBackgroundService = aisBackgroundService;
     }
     
     [HttpGet]
@@ -49,6 +51,7 @@ public class BoatController : Controller
         {
             return BadRequest("No MMSI provided");
         }
+        _= _aisBackgroundService.RestartService();
         
         //sanitize the input
         vessel.ShipName = WebUtility.HtmlEncode(vessel.ShipName);

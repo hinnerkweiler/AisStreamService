@@ -17,6 +17,7 @@ builder.Services.AddDbContext<AisDbContext>(options =>
         new MariaDbServerVersion(new Version(10, 6, 5))));
 
 builder.Services.AddHostedService<AisStreamService.Services.AisBackgroundService>();
+builder.Services.AddSingleton<AisBackgroundService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
