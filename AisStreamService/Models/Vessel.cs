@@ -13,6 +13,6 @@ public class Vessel
     public string? ShipUrl { get; set; }
     public string? ImageUrl { get; set; }
     public string? Country { get; set; }
-    public string? Type { get; set; }
+    public string? ShipType { get; set; }
     public string GroupId { get; set; } = Environment.GetEnvironmentVariable("Group") ?? "ungrouped";
 }

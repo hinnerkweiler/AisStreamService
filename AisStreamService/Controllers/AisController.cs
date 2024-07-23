@@ -43,7 +43,7 @@ namespace AisStreamService.Controllers
                             { "shipUrl", vessel.ShipUrl ?? "" },
                             { "imageUrl", vessel.ImageUrl ?? "" },
                             { "country", vessel.Country ?? "" },
-                            { "type", vessel.Type ?? "" },
+                            { "type", vessel.ShipType ?? "" },
                             { "group", vessel.GroupId },
                         },
                         Geometry = new Geometry
@@ -76,7 +76,7 @@ namespace AisStreamService.Controllers
                             { "shipUrl", boat.ShipUrl ?? ""},
                             { "imageUrl", boat.ImageUrl ?? ""},
                             { "country", boat.Country ?? ""},
-                            { "type", boat.Type ?? ""},
+                            { "type", boat.ShipType ?? ""},
                             { "group", boat.GroupId },
                         },
                         Geometry = new Geometry
@@ -105,7 +105,7 @@ namespace AisStreamService.Controllers
                                 { "shipUrl", vessel.ShipUrl ?? ""},
                                 { "imageUrl", vessel.ImageUrl ?? ""},
                                 { "country", vessel.Country ?? ""},
-                                { "type", vessel.Type ?? ""},
+                                { "type", vessel.ShipType ?? ""},
                                 { "group", vessel.GroupId },
                             },
                             Geometry = new Geometry

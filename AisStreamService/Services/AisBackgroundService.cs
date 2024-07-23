@@ -22,6 +22,11 @@ namespace AisStreamService.Services
             _logger = logger;
             _apiKey = System.Environment.GetEnvironmentVariable("AIS_API_KEY") ?? "";
         }
+        
+        public Task RestartService()
+        {
+            return StartAsync(CancellationToken.None);
+        }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -36,8 +41,17 @@ namespace AisStreamService.Services
                     var area = Environment.GetEnvironmentVariable("Area") ?? "-90,-180,90,180";
                     var areaBoundary = area.Split(",").Select(double.Parse).ToArray();
 
-                    var mmsiList = Environment.GetEnvironmentVariable("Boats");
+                    var mmsiList = Environment.GetEnvironmentVariable("Boats") ?? "";
                     var boundingBox = new double[][] { new double[] { areaBoundary[0], areaBoundary[1] }, new double[] { areaBoundary[2], areaBoundary[3] } };
+                    
+                    if (string.IsNullOrEmpty(mmsiList))
+                    {
+                        using var scope = _serviceProvider.CreateScope();
+                        var dbContext = scope.ServiceProvider.GetRequiredService<AisDbContext>();
+                        var mmsiNumbers = await dbContext.Vessels.Select(v => v.Mmsi).Distinct().ToListAsync();
+                        mmsiList = string.Join(",", mmsiNumbers);
+                        _logger.LogInformation("No MMSI numbers provided. Subscribing to all vessels currently in DB.: {mmsiList}", mmsiList);
+                    }
                     
                     var subscriptionMessage = new
                     {
