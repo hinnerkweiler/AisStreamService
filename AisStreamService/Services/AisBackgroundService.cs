@@ -65,13 +65,12 @@ namespace AisStreamService.Services
                         }
 
                         var responseString = Encoding.UTF8.GetString(responseBuffer, 0, result.Count);
-                        Console.WriteLine($"Received AIS data: {responseString.ToString()}");
+                        _logger.LogInformation("AIS-A PositionReport: {responseString.ToString()}", responseString);
                         var aisStreamResponse = JsonSerializer.Deserialize<AisStreamResponse>(responseString);
 
                         if (aisStreamResponse?.MessageType == "StandardClassBPositionReport")
                         {
-                            Console.WriteLine($"Received AIS data: {responseString}");
-                            await StoreAisDataAsync(aisStreamResponse);
+                            _logger.LogInformation("AIS-B PositionReport: {responseString.ToString()}", responseString);
                         }
                     }
                 }
