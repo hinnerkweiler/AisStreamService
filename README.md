@@ -13,6 +13,7 @@ the last known location of a monitored ship.
 * 0.1  Initial Release
 * 0.2  Added More Messagetypes and Support for ClassB AIS Data
 * 0.3  Store Speed and Course in Database
+* 0.4  
 
 ## Configuration
 The Service is fully configured via Environment Variables. No local Storage will be used and no persistend folders are required. The following Variables are available:
@@ -23,8 +24,8 @@ The Service is fully configured via Environment Variables. No local Storage will
 * `DBUser`= The User to connect to the Database
 * `DBpassword`= The Password to connect to the Database
 * `DBname`= The Name of the Database
-* (Optional) `Area`= The Area to query the AIS Data from. Default is *worldwide*. Format: `[lat1,lon1],[lat2,lon2]` *e.g. `[55,6],[53,10]` would limit the area to roughly the North Sea.*
-* (Optional) `Boats`= The List of Boats to receive AIS Data for. Format: `"MMSI1","MMSI2","MMSI3"` *e.g. `"211111111","211111112","211111113"`*
+* (Optional) `Area`= The Area to query the AIS Data from. Default is *worldwide*. Format: `lat1,lon1,lat2,lon2` *e.g. `55.5,6.2],[53.1,10.1]` would limit the area to roughly the North Sea.*
+* (Optional) `Boats`= The List of Boats to receive AIS Data for. Format: `MMSI1,MMSI2,MMSI3,...` *e.g. `211111111,211111112,211111113`*
 * (Optional) `Group`= The Name of the Default Group new boats are added to. Default is *ungrouped*.
 
 ### Database
@@ -34,6 +35,22 @@ The Database is configured for MySQL (*tested on mariaDB 10.6.5*). You need to s
 If neither `Area` nor `Boats` are defined, the Service will receive a vast amount of data from all ships all over the world. This can be well above 500 datasets per second and 
 can significantly impact your server performance and the amount of data to be stored in the Database. You will end up with more than 100k datasets in a few seconds and 
 if your Server congests because data can not be processed quick enough aisstream will disqualify your subscription and close the socket very quick!
+
+## Usage
+The Service is designed to be used in a larger Microservice Architecture. The Service provides a simple Web API to query the current AIS Data for a given boat or group of boats.
+To Request Data the Service provides the following Endpoints:
+* GET `/Boat` Returns a Json containing all Boats in the Database.
+* POST `/v1/ais/query` to query the AIS Data for a group of boats, an individual boat or a set of MMSIs. The POST body is a JSON:
+`{
+  "mmsiNumbers": [
+    211111111,211111112
+  ],
+  "shipName": "string",
+  "group": "string",
+  "apiKey": "string"
+}`
+*apiKey* is required and must match the `WEB_API_KEY` Environment Variable. The other fields are optional. If no field is provided the Service will return a `NotFound` likewise when no matching Vessels are found.
+**Returnvalue** is GeoJson FeatureCollection with the current AIS Data for the requested Vessels.that can be easily used as a map overlay.
 
 ## Contribution
 This is a private Project and I do not expect any contributions. However if you have any ideas or suggestions or special addons feel free to open an issue. I am happy to 
