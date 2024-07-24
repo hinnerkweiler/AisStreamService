@@ -93,13 +93,22 @@ namespace AisStreamService.Services
                         }
 
                         var responseString = Encoding.UTF8.GetString(responseBuffer, 0, result.Count);
-                        _logger.LogInformation("AIS-A PositionReport: {responseString.ToString()}", responseString);
+                        if (responseString == null)
+                        {
+                            throw new Exception("Received an empty response from AISStream.");
+                        }
                         var aisStreamResponse = JsonSerializer.Deserialize<AisStreamResponse>(responseString);
 
                         if (aisStreamResponse?.MessageType == "StandardClassBPositionReport")
                         {
                             _logger.LogInformation("AIS-B PositionReport: {responseString.ToString()}", responseString);
                         }
+                        else
+                        {
+                            _logger.LogInformation("AIS-A PositionReport: {responseString.ToString()}", responseString);
+                        }
+
+                        _ = StoreAisDataAsync(aisStreamResponse);
                     }
                 }
                 catch (System.Text.Json.JsonException ex)
